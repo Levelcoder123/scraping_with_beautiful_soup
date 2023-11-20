@@ -9,7 +9,7 @@ page_url = '/used-cars/search/-/ct_lahore/ca_college-road/'
 
 # load website using chrome webdriver
 def get_driver(website):
-    service = Service('./chromedriver')  # chromedriver path
+    service = Service('../chromedriver')  # chromedriver path
     driver = webdriver.Chrome(service=service)
     driver.get(website)
 
