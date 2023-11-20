@@ -1,35 +1,10 @@
-from bs4 import BeautifulSoup
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-import pandas as pd
-
-base_url = 'https://www.pakwheels.com'
-page_url = '/used-cars/search/-/ct_lahore/ca_college-road/'
-
-
-# load website using chrome webdriver
-def get_driver():
-    service = Service('../../chromedriver')  # chromedriver path
-    driver = webdriver.Chrome(service=service)
-
-    return driver
-
-
-def get_soup_by_selenium_driver(website):
-    driver = get_driver()
-    driver.get(website)
-
-    # get html from driver and make it soup
-    html_data = driver.page_source
-    soup = BeautifulSoup(html_data, features="html.parser")
-
-    return soup
+from constants import page_url, base_url
+from utils import get_soup_by_selenium_driver
 
 
 def get_product_details(soup):
     # get product details
-    name_data = soup.find('div', id='scroll_car_info').get_text(separator='\n', strip=True)
-    name = name_data.split('\n')[0]
+    name = soup.find('div', id='scroll_car_info').get_text(separator='\n', strip=True).split('\n')[0]
 
     price = soup.find('div', class_='price-box').get_text(separator=' ', strip=True)
 
@@ -52,7 +27,7 @@ def get_product_details(soup):
 
     featured_or_not = soup.find('div', id='myCarousel').get_text(separator=',', strip=True).split(',')[0]
 
-    is_featured = (True if featured_or_not == 'FEATURED' else False)
+    is_featured = featured_or_not == 'FEATURED'
 
     images = soup.find('div', id='myCarousel').find('ul', class_='lSPager lSGallery').findAll('img')
 
@@ -74,17 +49,29 @@ def get_product_details(soup):
     }
 
 
-def get_page_urls(last_page):
+def get_page_urls(soup):
+    page_num = 1
     page_urls_list = []
+    last_page_url = get_last_page(soup)
 
-    for page_num in range(1, len(last_page)):
+    while True:
         page_urls_list.append(f'{base_url}{page_url}?page={page_num}')
+
+        if last_page_url in page_urls_list:
+            break
 
     return page_urls_list
 
 
-def get_products_urls(page_urls):
-    products_urls_list = []
+def get_last_page(soup):
+    last_page_url_data = soup.find('li', class_='last next')['href']
+    last_page_url = base_url + last_page_url_data
+
+    return last_page_url
+
+
+def get_product_urls(page_urls):
+    product_urls_list = []
 
     for url in page_urls:
         soup = get_soup_by_selenium_driver(url)
@@ -92,24 +79,16 @@ def get_products_urls(page_urls):
 
         for product_url in all_product_urls:
             product_href = product_url['href']
-            products_urls_list.append(base_url + product_href)
+            product_urls_list.append(base_url + product_href)
 
-    return products_urls_list
+    return product_urls_list
 
 
-def get_products_details(product_urls_list):
-    products_details = []
+def get_all_product_details(product_urls_list):
+    products = []
 
     for product_url in product_urls_list:
         soup = get_soup_by_selenium_driver(product_url)
-        products_details.append(get_product_details(soup))
+        products.append(get_all_product_details(soup))
 
-    return products_details
-
-
-pages_urls = get_page_urls(last_page='')
-products_urls = get_products_urls(pages_urls)
-products_all_details = get_products_details(products_urls)
-
-df = pd.DataFrame(products_all_details)
-df.to_excel('all_products_details.xlsx', index=False)
+    return products
