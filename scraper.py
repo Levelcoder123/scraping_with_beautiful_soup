@@ -1,4 +1,4 @@
-from constants import page_url, base_url
+from constants import page_url, base_url, website_url
 from utils import get_soup_by_selenium_driver
 
 
@@ -49,22 +49,21 @@ def get_product_details(soup):
     }
 
 
-def get_page_urls(soup):
+def get_page_urls():
     page_num = 1
     page_urls_list = []
-    last_page_url = get_last_page(soup)
+    last_page_url = get_last_page()
 
-    while True:
+    while last_page_url not in page_urls_list:
         page_urls_list.append(f'{base_url}{page_url}?page={page_num}')
-
-        if last_page_url in page_urls_list:
-            break
+        page_num += 1
 
     return page_urls_list
 
 
-def get_last_page(soup):
-    last_page_url_data = soup.find('li', class_='last next')['href']
+def get_last_page():
+    soup = get_soup_by_selenium_driver(website_url)
+    last_page_url_data = soup.find('li', class_='last next').find('a')['href']
     last_page_url = base_url + last_page_url_data
 
     return last_page_url
