@@ -51,10 +51,14 @@ def get_product_details(soup):
 
 def get_last_page():
     soup = get_soup_by_selenium_driver(website_url)
-    last_page_url_data = soup.find('li', class_='last next').find('a')['href']
-    last_page_url = base_url + last_page_url_data
+    last_page_url_data = soup.find('li', class_='last next')
 
-    return last_page_url
+    if last_page_url_data:
+        last_page_url = last_page_url_data.find('a')['href']
+        last_page_url = base_url + last_page_url
+        return last_page_url
+    else:
+        return None
 
 
 def get_page_urls():
@@ -62,9 +66,12 @@ def get_page_urls():
     page_urls_list = []
     last_page_url = get_last_page()
 
-    while last_page_url not in page_urls_list:
-        page_urls_list.append(f'{base_url}{page_url}?page={page_num}')
-        page_num += 1
+    if last_page_url:
+        while last_page_url not in page_urls_list:
+            page_urls_list.append(f'{base_url}{page_url}?page={page_num}')
+            page_num += 1
+    else:
+        page_urls_list.append(website_url)
 
     return page_urls_list
 
