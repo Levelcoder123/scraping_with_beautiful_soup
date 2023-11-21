@@ -1,4 +1,6 @@
-from constants import page_url, base_url, website_url
+import re
+
+from constants import BASE_URL
 from utils import get_soup_by_selenium_driver
 
 
@@ -8,32 +10,30 @@ def get_product_details(soup):
 
     price = soup.find('div', class_='price-box').get_text(separator=' ', strip=True)
 
-    location_data = (soup.find('p', class_='detail-sub-heading')
-                     .get_text(separator=',', strip=True).split(',', maxsplit=2))
-    location = ','.join(location_data[:2])
+    location = soup.find('p', class_='detail-sub-heading').get_text(strip=True)
 
-    model_year = \
-        soup.find('span', class_='engine-icon year').parent.get_text(strip=True)
+    model_year = soup.find('span', class_='engine-icon year').parent.get_text(strip=True)
 
     mileage = soup.find('span', class_='engine-icon millage').parent.get_text(strip=True)
 
-    seller_name_data = soup.find('div', class_='owner-detail-main').get_text(separator=',', strip=True).split(
-        ',')
+    seller_name_data = soup.find('div', class_='owner-detail-main').get_text(separator=',', strip=True).split(',')
 
-    # checking "is seller 'Dealer' or not? "
+    # checking "is seller 'Dealer' or not?"
     seller_name = seller_name_data[0]
     if seller_name == 'Dealer:':
         seller_name = seller_name_data[1]
 
     featured_or_not = soup.find('div', id='myCarousel').get_text(separator=',', strip=True).split(',')[0]
-
     is_featured = featured_or_not == 'FEATURED'
 
-    images = soup.find('div', id='myCarousel').find('ul', class_='lSPager lSGallery').findAll('img')
+    images = soup.find('div', id='myCarousel')
+    all_images = None
 
-    cover_image_url = images[0]['data-original']
-    image_1_url = images[1]['data-original'] if len(images) > 1 else None
-    image_2_url = images[2]['data-original'] if len(images) > 2 else None
+    if images:
+        all_images = images.find('ul', class_='lSPager lSGallery').findAll('img')
+    cover_image_url = all_images[0]['data-original']
+    image_1_url = all_images[1]['data-original'] if len(images) > 1 else None
+    image_2_url = all_images[2]['data-original'] if len(images) > 2 else None
 
     return {
         'name': name,
@@ -44,34 +44,49 @@ def get_product_details(soup):
         'seller_name': seller_name,
         'is_featured': is_featured,
         'cover_image_url': cover_image_url,
-        'image_1': image_1_url,
-        'image_2': image_2_url,
+        'image_1_url': image_1_url,
+        'image_2_url': image_2_url,
     }
 
 
-def get_last_page():
+def get_last_page(website_url):
     soup = get_soup_by_selenium_driver(website_url)
     last_page_url_data = soup.find('li', class_='last next')
 
     if last_page_url_data:
         last_page_url = last_page_url_data.find('a')['href']
-        last_page_url = base_url + last_page_url
+        last_page_url = BASE_URL + last_page_url
         return last_page_url
     else:
         return None
 
 
-def get_page_urls():
-    page_num = 1
+def get_last_page_index(website):
+    last_page_url = get_last_page(website)
+
+    # regex (Regular expression) pattern to find the page number
+    pattern = r'page=(\d+)$'
+
+    # Search for the pattern
+    match = re.search(pattern, last_page_url)
+
+    page_number = match.group(1)
+
+    return int(page_number)
+
+
+def get_page_urls(page_url):
     page_urls_list = []
-    last_page_url = get_last_page()
+    website = BASE_URL + page_url
+    last_page_url = get_last_page(website)
 
     if last_page_url:
-        while last_page_url not in page_urls_list:
-            page_urls_list.append(f'{base_url}{page_url}?page={page_num}')
-            page_num += 1
+        last_page_index = get_last_page_index(website)
+
+        for page_num in range(1, last_page_index + 1):
+            page_urls_list.append(f'{BASE_URL}{page_url}?page={page_num}')
     else:
-        page_urls_list.append(website_url)
+        page_urls_list.append(website)
 
     return page_urls_list
 
@@ -84,7 +99,7 @@ def get_product_urls(page_urls):
         all_product_urls = soup.find_all('a', class_='car-name ad-detail-path')
 
         for product_url in all_product_urls:
-            product_urls_list.append(f'{base_url}{product_url["href"]}')
+            product_urls_list.append(f'{BASE_URL}{product_url["href"]}')
 
     return product_urls_list
 
