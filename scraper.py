@@ -27,13 +27,15 @@ def get_product_details(soup):
     is_featured = featured_or_not == 'FEATURED'
 
     images = soup.find('div', id='myCarousel')
-    all_images = None
-
     if images:
         all_images = images.find('ul', class_='lSPager lSGallery').findAll('img')
-    cover_image_url = all_images[0]['data-original']
-    image_1_url = all_images[1]['data-original'] if len(images) > 1 else None
-    image_2_url = all_images[2]['data-original'] if len(images) > 2 else None
+        cover_image_url = all_images[0]['data-original']
+        image_1_url = all_images[1]['data-original'] if len(images) > 1 else None
+        image_2_url = all_images[2]['data-original'] if len(images) > 2 else None
+    else:
+        cover_image_url = None
+        image_1_url = None
+        image_2_url = None
 
     return {
         'name': name,
@@ -55,10 +57,9 @@ def get_last_page(website_url):
 
     if last_page_url_data:
         last_page_url = last_page_url_data.find('a')['href']
-        last_page_url = BASE_URL + last_page_url
-        return last_page_url
-    else:
-        return None
+        return BASE_URL + last_page_url
+
+    return None
 
 
 def get_last_page_index(website):
@@ -76,17 +77,15 @@ def get_last_page_index(website):
 
 
 def get_page_urls(page_url):
-    page_urls_list = []
     website = BASE_URL + page_url
+    page_urls_list = [website]
     last_page_url = get_last_page(website)
 
     if last_page_url:
         last_page_index = get_last_page_index(website)
 
-        for page_num in range(1, last_page_index + 1):
+        for page_num in range(2, last_page_index + 1):
             page_urls_list.append(f'{BASE_URL}{page_url}?page={page_num}')
-    else:
-        page_urls_list.append(website)
 
     return page_urls_list
 
