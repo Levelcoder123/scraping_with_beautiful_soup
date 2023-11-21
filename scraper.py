@@ -26,12 +26,17 @@ def get_product_details(soup):
     featured_or_not = soup.find('div', id='myCarousel').get_text(separator=',', strip=True).split(',')[0]
     is_featured = featured_or_not == 'FEATURED'
 
-    images = soup.find('div', id='myCarousel')
-    if images:
-        all_images = images.find('ul', class_='lSPager lSGallery').findAll('img')
-        cover_image_url = all_images[0]['data-original']
-        image_1_url = all_images[1]['data-original'] if len(images) > 1 else None
-        image_2_url = all_images[2]['data-original'] if len(images) > 2 else None
+    images_carousel = soup.find('div', id='myCarousel')
+    if images_carousel:
+        all_images = images_carousel.find('ul', class_='lSPager lSGallery').findAll('img')
+        if all_images:
+            cover_image_url = all_images[0]['data-original']
+            image_1_url = all_images[1]['data-original'] if len(images_carousel) > 1 else None
+            image_2_url = all_images[2]['data-original'] if len(images_carousel) > 2 else None
+        else:
+            cover_image_url = None
+            image_1_url = None
+            image_2_url = None
     else:
         cover_image_url = None
         image_1_url = None
@@ -51,8 +56,8 @@ def get_product_details(soup):
     }
 
 
-def get_last_page(website_url):
-    soup = get_soup_by_selenium_driver(website_url)
+def get_last_page(input_url):
+    soup = get_soup_by_selenium_driver(input_url)
     last_page_url_data = soup.find('li', class_='last next')
 
     if last_page_url_data:
@@ -62,8 +67,8 @@ def get_last_page(website_url):
     return None
 
 
-def get_last_page_index(website):
-    last_page_url = get_last_page(website)
+def get_last_page_index(input_url):
+    last_page_url = get_last_page(input_url)
 
     # regex (Regular expression) pattern to find the page number
     pattern = r'page=(\d+)$'
@@ -76,16 +81,15 @@ def get_last_page_index(website):
     return int(page_number)
 
 
-def get_page_urls(page_url):
-    website = BASE_URL + page_url
-    page_urls_list = [website]
-    last_page_url = get_last_page(website)
+def get_page_urls(user_url):
+    page_urls_list = [user_url]
+    last_page_url = get_last_page(user_url)
 
     if last_page_url:
-        last_page_index = get_last_page_index(website)
+        last_page_index = get_last_page_index(user_url)
 
         for page_num in range(2, last_page_index + 1):
-            page_urls_list.append(f'{BASE_URL}{page_url}?page={page_num}')
+            page_urls_list.append(f'{user_url}?page={page_num}')
 
     return page_urls_list
 
