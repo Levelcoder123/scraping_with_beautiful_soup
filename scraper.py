@@ -49,6 +49,14 @@ def get_product_details(soup):
     }
 
 
+def get_last_page():
+    soup = get_soup_by_selenium_driver(website_url)
+    last_page_url_data = soup.find('li', class_='last next').find('a')['href']
+    last_page_url = base_url + last_page_url_data
+
+    return last_page_url
+
+
 def get_page_urls():
     page_num = 1
     page_urls_list = []
@@ -61,14 +69,6 @@ def get_page_urls():
     return page_urls_list
 
 
-def get_last_page():
-    soup = get_soup_by_selenium_driver(website_url)
-    last_page_url_data = soup.find('li', class_='last next').find('a')['href']
-    last_page_url = base_url + last_page_url_data
-
-    return last_page_url
-
-
 def get_product_urls(page_urls):
     product_urls_list = []
 
@@ -77,8 +77,7 @@ def get_product_urls(page_urls):
         all_product_urls = soup.find_all('a', class_='car-name ad-detail-path')
 
         for product_url in all_product_urls:
-            product_href = product_url['href']
-            product_urls_list.append(base_url + product_href)
+            product_urls_list.append(f'{base_url}{product_url["href"]}')
 
     return product_urls_list
 
@@ -88,6 +87,6 @@ def get_all_product_details(product_urls_list):
 
     for product_url in product_urls_list:
         soup = get_soup_by_selenium_driver(product_url)
-        products.append(get_all_product_details(soup))
+        products.append(get_product_details(soup))
 
     return products
