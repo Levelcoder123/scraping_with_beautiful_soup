@@ -30,8 +30,8 @@ def get_product_details(soup):
     if images_carousel:
         all_images = images_carousel.find('ul', class_='lSPager lSGallery').findAll('img')
         cover_image_url = all_images[0]['data-original']
-        image_1_url = all_images[1]['data-original'] if len(images_carousel) > 1 else None
-        image_2_url = all_images[2]['data-original'] if len(images_carousel) > 2 else None
+        image_1_url = all_images[1]['data-original'] if len(all_images) > 1 else None
+        image_2_url = all_images[2]['data-original'] if len(all_images) > 2 else None
     else:
         cover_image_url = None
         image_1_url = None
