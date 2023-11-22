@@ -4,7 +4,7 @@ import pandas as pd
 
 from scraper import get_page_urls, get_product_urls, get_all_product_details
 
-user_url = input('Please type an url: ')
+user_url = input('Please type a url: ')
 
 latest_date_time = datetime.now()
 formatted_datetime = latest_date_time.strftime("%Y_%m_%d_%H_%M")
