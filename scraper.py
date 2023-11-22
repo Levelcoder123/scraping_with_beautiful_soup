@@ -29,14 +29,9 @@ def get_product_details(soup):
     images_carousel = soup.find('div', id='myCarousel')
     if images_carousel:
         all_images = images_carousel.find('ul', class_='lSPager lSGallery').findAll('img')
-        if all_images:
-            cover_image_url = all_images[0]['data-original']
-            image_1_url = all_images[1]['data-original'] if len(images_carousel) > 1 else None
-            image_2_url = all_images[2]['data-original'] if len(images_carousel) > 2 else None
-        else:
-            cover_image_url = None
-            image_1_url = None
-            image_2_url = None
+        cover_image_url = all_images[0]['data-original']
+        image_1_url = all_images[1]['data-original'] if len(images_carousel) > 1 else None
+        image_2_url = all_images[2]['data-original'] if len(images_carousel) > 2 else None
     else:
         cover_image_url = None
         image_1_url = None
@@ -101,8 +96,13 @@ def get_product_urls(page_urls):
         soup = get_soup_by_selenium_driver(url)
         all_product_urls = soup.find_all('a', class_='car-name ad-detail-path')
 
+        # avoiding products other-then that user selected
+        city_or_province_value = soup.find('input', id='selected_city_slug')['value']
+        normalized_pattern = city_or_province_value.replace("-", "-?")
+
         for product_url in all_product_urls:
-            product_urls_list.append(f'{BASE_URL}{product_url["href"]}')
+            if re.search(normalized_pattern, str(product_url)):
+                product_urls_list.append(f'{BASE_URL}{product_url["href"]}')
 
     return product_urls_list
 
