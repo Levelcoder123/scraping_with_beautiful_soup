@@ -11,9 +11,9 @@ def get_driver():
     return driver
 
 
-def get_soup_by_selenium_driver(website):
+def get_soup_by_selenium_driver(url):
     driver = get_driver()
-    driver.get(website)
+    driver.get(url)
 
     # get html from driver and make it soup
     html_data = driver.page_source
